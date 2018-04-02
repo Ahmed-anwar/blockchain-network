@@ -27,3 +27,8 @@ hs_err_pid*
 
 #mac files
 .DS_Store
+/bin/
+
+# Eclipse stuff
+.classpath
+.project
