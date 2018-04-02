@@ -1,63 +1,74 @@
-import java.io.IOException;
-import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Random;
 
 public class Network {
-    static final ArrayList<User> users = new ArrayList<>();
 
-    public void registerUser() throws NoSuchAlgorithmException {
-        User newUser = new User(Utility.generateKeyPair());
+	ArrayList<User> users = new ArrayList<>();
 
-        if(users.isEmpty()){
-            users.add(newUser);
-            return;
-        }
+	/**
+	 * Registers a new user into the network and connects it with at least one other peer.
+	 */
+	public void registerUser() throws NoSuchAlgorithmException {
+		// Create a new user with a given key pair.
+		User newUser = new User(Utility.generateKeyPair());
 
-        int seed = (new Random()).nextInt(users.size());
-        User seedUser = users.get(seed);
-        newUser.addPeer(seedUser);
-        seedUser.addPeer(newUser);
+		// If it's the first user in the network, add it right away.
+		if(users.isEmpty()){
+			users.add(newUser);
+			return;
+		}
 
-        int percentageOfEdges = new Random().nextInt(15) + 5;
+		// Randomly choose an existing user to guarantee a connection with it.
+		int seed = (new Random()).nextInt(users.size());
+		User seedUser = users.get(seed);
+		newUser.addPeer(seedUser);
+		seedUser.addPeer(newUser);
 
-        for (int i = 0; i < users.size(); i++) {
-            int edge = new Random().nextInt(percentageOfEdges);
-            if(edge == 0 && i != seed){
-                User peer = users.get(i);
-                newUser.addPeer(peer);
-                peer.addPeer(newUser);
-            }
-        }
-        users.add(newUser);
-    }
+		// Choose a random probability (between 5% and 20%) to connect to a given existing user. 
+		int percentageOfEdges = new Random().nextInt(15) + 5;
+		for (int i = 0; i < users.size(); i++) {
+			int edge = new Random().nextInt(percentageOfEdges);
+			if(edge == 0 && i != seed){
+				User peer = users.get(i);
+				newUser.addPeer(peer);
+				peer.addPeer(newUser);
+			}
+		}
+		// Add the new user to the network.
+		users.add(newUser);
+	}
 
-    public static void main(String[] args) throws NoSuchAlgorithmException, CloneNotSupportedException, InvalidKeyException, SignatureException, IOException {
-        Network network = new Network();
-        for (int i = 0; i < 200; i++)
-            network.registerUser();
 
-        User user = users.get(0);
-        user.createTransaction("Hagar");
-//        network.print();
-
-        int counter = 1;
-        for (User u : users){
-            System.out.println("=========================================================================");
-            System.out.println("=============================== User #" + counter++ + " ===============================");
-            System.out.println("=========================================================================");
-            System.out.println("User ID: " + u);
-            System.out.println("Peers: " + u.peers.toString());
-            System.out.println(" ");
-        }
-    }
-
-    public void print(){
-        for(User user: users)
-            user.print();
-    }
+	/**
+	 * Prints the existing user IDs along with the peers and current block of each.
+	 */
+	public void print() {
+		int counter = 1;
+		for (User u : users){
+			System.out.println("=========================================================================");
+			System.out.println("=============================== User #" + counter++ + " ===============================");
+			System.out.println("=========================================================================");
+			System.out.println("User ID: " + u);
+			System.out.println("Peers: " + u.peers.toString());
+			System.out.println("Block: " + u.getBlock());
+			System.out.println(" ");
+		}
+	}
+	/**
+	 * Prints the existing user IDs along with the current block of each.
+	 */
+	public void printUsersBlocks(){
+		for (User user: users)
+			user.printMyBlocks();
+	}
+	/**
+	 * Prints the existing user IDs along with the peers of each.
+	 */
+	public void printUsersPeers() {
+		for (User user: users)
+			user.printMyPeers();
+	}
 
 
 }
