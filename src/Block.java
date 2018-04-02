@@ -1,18 +1,21 @@
-import java.util.ArrayList;
 import java.util.HashSet;
 
 public class Block {
-    HashSet<Transaction> transactions;
-    public Block(){
-        transactions = new HashSet<Transaction>();
-    }
+	HashSet<Transaction> transactions;
+	public Block(){
+		transactions = new HashSet<Transaction>();
+	}
 
-    public void add(Transaction transaction){
-        transactions.add(transaction);
-    }
+	/**
+	 * Adds a new transaction to a block (duplicates are removed).
+	 * @param transaction the transaction to add to the block
+	 */
+	public void add(Transaction transaction){
+		transactions.add(transaction);
+	}
 
-    @Override
-    public String toString(){
-        return transactions.toString();
-    }
+	@Override
+	public String toString(){
+		return transactions.toString();
+	}
 }
