@@ -2,9 +2,9 @@ package main;
 
 import models.Block;
 import models.Transaction;
+import network.Network;
+import network.User;
 import utilities.Utility;
-import Network.Network;
-import Network.User;
 
 public class Main {
 
