@@ -21,7 +21,7 @@ public class User {
 
 	/**
 	 * Constructs a new user with the given pair of keys.
-	 * 
+	 *
 	 * @param keyPair
 	 *            the pair of public and private keys
 	 */
@@ -36,7 +36,7 @@ public class User {
 	/**
 	 * Creates a new transaction from the given message and notifies some of my
 	 * peers.
-	 * 
+	 *
 	 * @param message
 	 *            the actual content of the transaction
 	 * @throws Exception
@@ -46,14 +46,14 @@ public class User {
 		// Create the transaction.
 		Transaction transaction = new Transaction(myKeyPair.getPublic(), receiverPubKey, val);
 		// sign transaction
-		transaction.setSignature(Utility.generateSignature(myKeyPair.getPrivate(), transaction.toString()));
+		transaction.setSignature(Utility.generateSignature(myKeyPair.getPrivate(), transaction.plainText()));
 		return transaction;
 	}
 
 	/**
 	 * Notifies a random set of my peers, who in turn notify their peers until
 	 * the TTL of the notification runs out.
-	 * 
+	 *
 	 * @param ntfc
 	 *            the transaction encapsulated with the signature of the
 	 *            original sender and the TTL
@@ -65,17 +65,16 @@ public class User {
 			Transaction trans = (Transaction) ntfc;
 			if(!currBlock.add(trans))
 				return;
-			System.out.printf("\nUser %d added transaction %s to his block\n", userId, trans.toString());
+			printAnnouncement(ntfc);
 			tryMining();
 
 		} else {
 			boolean added = blockChain.addBlock((Block) ntfc);
 			if (!added) // not a valid block
 				return;
+			printAnnouncement(ntfc);
 			currBlock.removeIntersection((Block) ntfc);
 		}
-
-		printAnnouncement(ntfc);
 
 		notifyPeers(ntfc);
 
@@ -84,7 +83,7 @@ public class User {
 		// Announce block if it reached maximum size and was mined correctly.
 		if (currBlock.size() == Utility.BLOCK_SIZE) {
 			currBlock.mineBlock(blockChain.tail().hash());
-			System.out.printf("\nUser %d mined block %s\n", userId, currBlock.toString());
+			System.out.printf("\nUser %d mined block %s with trans\n %s\n", userId, currBlock.toString(), currBlock.transactions().toString());
 			Block b = (Block) currBlock.clone();
 			blockChain.addBlock(b);
 			b = (Block) currBlock.clone();
@@ -124,21 +123,19 @@ public class User {
 
 	private void printAnnouncement(Notification notification) {
 		if (notification instanceof Transaction) {
-			System.out.print("\nUser " + userId + " with pubKey = " + myKeyPair.getPublic().hashCode()
-					+ " added new transaction: ");
-			System.out.println((Transaction) notification);
+			System.out.print("\nUser " + userId + " added transaction: ");
+			System.out.println(((Transaction) notification).transId());
 		}
 
 		else{
-			System.out.print("\nUser " + userId + " with pubKey = " + myKeyPair.getPublic().hashCode()
-					+ " added new block : ");
+			System.out.print("\nUser " + userId + " added block : ");
 			System.out.println((Block) notification);
 		}
 	}
 
 	/**
 	 * Creates a link between another user and me.
-	 * 
+	 *
 	 * @param user
 	 *            my peer
 	 */

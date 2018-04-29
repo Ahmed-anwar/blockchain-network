@@ -56,7 +56,7 @@ public class BlockChain {
 
 		for (Transaction transaction : b.transactions())
 			// validate transactions
-			if (!Utility.verfiySignature(transaction.senderPubKey(), transaction.toString(), transaction.signature()))
+			if (!Utility.verfiySignature(transaction.senderPubKey(), transaction.plainText(), transaction.signature()))
 				return false;
 
 		return true;

@@ -20,10 +20,6 @@ public class Main {
 		System.out.println("\n==================== GENESIS BLOCK ANNOUNCED ========================\n");
 		network.announceGenesis();
 
-		// print blockchain of each user
-		for (User user : network.users())
-			user.printBlockchain();
-
 		User user0 = network.users().get(0);
 		User user1 = network.users().get(1);
 		for (int i = 0; i < Utility.BLOCK_SIZE << 1; i++) {

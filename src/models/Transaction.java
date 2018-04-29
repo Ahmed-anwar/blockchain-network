@@ -10,7 +10,7 @@ public class Transaction extends Notification implements Serializable, Comparabl
 	private PublicKey senderPubKey;
 	private PublicKey receiverPubKey;
 	private double val;
-	private int orderNum; // order number to be used in TreeSet sorting
+	private int numID; // order number to be used in TreeSet sorting
 	private static int sequence;
 
 	public Transaction(PublicKey senderPubKey, PublicKey receiverPubKey, double val) {
@@ -19,7 +19,7 @@ public class Transaction extends Notification implements Serializable, Comparabl
 		this.senderPubKey = senderPubKey;
 		this.receiverPubKey = receiverPubKey;
 		this.val = val;
-		this.orderNum = sequence++;
+		this.numID = sequence++;
 	}
 
 	@Override
@@ -57,10 +57,13 @@ public class Transaction extends Notification implements Serializable, Comparabl
 		return val;
 	}
 
+	public String plainText() {
+		return String.join(":", transId, "" + senderPubKey.hashCode(), "" + receiverPubKey.hashCode(), "" + val);
+	}
+	
 	@Override
 	public String toString() {
-		return "[transId=" + transId + ", senderPubKey=" + senderPubKey.hashCode() + ", receiverPubKey="
-				+ receiverPubKey.hashCode() + ", val=" + val + "]";
+		return transId;
 	}
 
 	@Override
@@ -69,11 +72,12 @@ public class Transaction extends Notification implements Serializable, Comparabl
 		t.signature = this.signature;
 		t.TTL = this.TTL;
 		t.transId = this.transId;
+		t.numID = this.numID;
 		return t;
 	}
 
 	@Override
 	public int compareTo(Transaction o) {
-		return Integer.valueOf(this.orderNum).compareTo(Integer.valueOf(o.orderNum));
+		return Integer.valueOf(this.numID).compareTo(Integer.valueOf(o.numID));
 	}
 }

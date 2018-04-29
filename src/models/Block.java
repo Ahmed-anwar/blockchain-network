@@ -60,7 +60,7 @@ public class Block extends Notification {
 	 * @throws Exception
 	 */
 	public boolean add(Transaction transaction) throws Exception {
-		if (Utility.verfiySignature(transaction.senderPubKey(), transaction.toString(), transaction.signature())) {
+		if (	Utility.verfiySignature(transaction.senderPubKey(), transaction.plainText(), transaction.signature())) {
 			transactions.add(transaction);
 			return true;
 		}
@@ -81,7 +81,7 @@ public class Block extends Notification {
 
 	@Override
 	public String toString() {
-		return "Block " + hash.substring(0, 5);
+		return hash.substring(0, 5);
 	}
 
 	@Override
