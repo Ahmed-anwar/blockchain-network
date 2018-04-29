@@ -6,7 +6,7 @@ We simulate a multi-user network for a cryptocurrency as **Bitcoin**. Once a *tr
 ## Running the tests
 1. Compile all files.
 2. Run the `Main.java` file in the `src/main` folder.
-3. Call `test2()` for the e-mail scenario, or `test1()` for an almost random scenario.
+3. Call `test2()` for a longer chain substitution scenario, or `test1()` for an almost random scenario.
 
 
 ## Built With
