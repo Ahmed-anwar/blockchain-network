@@ -7,19 +7,20 @@ import Network.User;
 
 public class Main {
 
+	static Network network;
 	public static void main(String[] args) throws Exception {
-		Network network = new Network();
+		network = new Network();
+		
 		final int N = 5;
 		// register new N users
 		for (int i = 0; i < N; ++i)
 			network.registerUser();
 		
-
-
-
-		System.out.println("\n==================== GENESIS BLOCK ANNOUNCED ========================\n");
 		network.announceGenesis();
 
+		test1();
+	}
+	public static void test1() throws Exception {
 		User user0 = network.users().get(0);
 		User user1 = network.users().get(1);
 		for (int i = 0; i < Utility.BLOCK_SIZE << 1; i++) {
@@ -28,7 +29,6 @@ public class Main {
 		}
 		System.out.print("\n\n");
 		for (User user : network.users())
-			// print blockchain of each user
 			user.printBlockchain();
 			System.out.println();
 	}

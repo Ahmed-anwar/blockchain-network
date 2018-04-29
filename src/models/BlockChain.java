@@ -2,33 +2,34 @@ package models;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map.Entry;
 import utilities.Utility;
 
 public class BlockChain {
-	Block tail; // longest chain tail
+	Block head; // longest chain tail
 	final HashMap<String, Block> cache = new HashMap<String, Block>();
+	final HashMap<String, Block> memory = new HashMap<String, Block>(); //full history
 	final HashMap<String, Integer> chainLen = new HashMap<String, Integer>();
 
 	public boolean addBlock(Block b) throws Exception {
-		if (cache.containsKey(b.hash())) // received block before
+		if (cache.containsKey(b.hash()) || !validateBlock(b)) // received block before
 			return false;
-
-		if (!validateBlock(b))
-			return false;
-
+		
 		cache.put(b.hash(), b);
+		memory.put(b.hash(), b);
 
-		if (tail == null) {
-			tail = b;
+		if (head == null) {
+			head = b;
 			chainLen.put(b.hash(), 1);
-		} else {
+		} 
+		else {
 			int prevLen = chainLen.get(b.prevHash());
 			int newLen = prevLen + 1;
 			chainLen.put(b.hash(), newLen);
-			int currLen = chainLen.get(tail.hash());
+			int currLen = chainLen.get(head.hash());
 			if(newLen > currLen) {
-				tail = b;
+				head = b;
 				removeShortChains();
 			}
 		}
@@ -40,8 +41,9 @@ public class BlockChain {
 		for (int i = 0; i < entries.size(); i++) {
 			int bLen = entries.get(i).getValue();
 			String bHash = entries.get(i).getKey();
-			int currLen = chainLen.get(tail.hash());
+			int currLen = chainLen.get(head.hash());
 			if(currLen - bLen > Utility.BLOCK_LIFE) {
+				//Remove from cache but NOT memory.
 				chainLen.remove(bHash);
 				cache.remove(bHash);
 			}
@@ -63,12 +65,24 @@ public class BlockChain {
 	}
 
 	public Block tail() {
-		return tail;
+		return head;
 	}
 
 	@Override
 	public String toString() {
-		return "tail= " + tail + "\n chain length = " + chainLen.get(tail.hash()) + "\n cache= " + cache.values().toString();
+		return "\nchain length = " + chainLen.get(head.hash())
+				+ "\nchain = " + currChain().toString()
+				+ "\ncache= " + cache.values().toString();
+	}
+	
+	public LinkedList<Block> currChain(){
+		LinkedList<Block> chain = new LinkedList<Block>();
+		Block b = head;
+		while(b != null) {
+			chain.add(b);
+			b = memory.get(b.prevHash());
+		}
+		return chain;
 	}
 
 }
