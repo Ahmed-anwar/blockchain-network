@@ -12,6 +12,7 @@ public class Block extends Notification {
 	private TreeSet<Transaction> transactions;
 
 	public Block() {
+		super();
 		transactions = new TreeSet<Transaction>();
 	}
 
@@ -19,14 +20,12 @@ public class Block extends Notification {
 	public void mineBlock(String prevHash) throws NoSuchAlgorithmException {
 		this.prevHash = prevHash;
 		String merkleRoot = getMerkleRoot();
-		String target = new String(new char[Utility.DIFFICULITY]).replace('\0', '0');
 		hash = calcHash(merkleRoot);
 		int nonce = 0;
-		while (!hash.substring(0, Utility.DIFFICULITY).equals(target)) {
+		while (!Utility.isTarget(hash)) {
 			nonce++;
 			hash = calcHash(merkleRoot + nonce);
 		}
-		System.out.println("Block Mined!!! : " + hash);
 	}
 
 	private String calcHash(String s) throws NoSuchAlgorithmException {
@@ -55,14 +54,17 @@ public class Block extends Notification {
 
 	/**
 	 * Adds a new transaction to a block (duplicates are removed).
-	 * 
+	 *
 	 * @param transaction
 	 *            the transaction to add to the block
 	 * @throws Exception
 	 */
-	public void add(Transaction transaction) throws Exception {
-		if (Utility.verfiySignature(transaction.senderPubKey(), transaction.toString(), transaction.signature()))
+	public boolean add(Transaction transaction) throws Exception {
+		if (Utility.verfiySignature(transaction.senderPubKey(), transaction.toString(), transaction.signature())) {
 			transactions.add(transaction);
+			return true;
+		}
+		return false;
 	}
 
 	public String hash() {
@@ -79,7 +81,7 @@ public class Block extends Notification {
 
 	@Override
 	public String toString() {
-		return "Block [hash=" + hash + ", prevHash=" + prevHash + ", transactions=" + transactions + "]";
+		return "Block " + hash.substring(0, 5);
 	}
 
 	@Override
@@ -104,4 +106,12 @@ public class Block extends Notification {
 		return transactions.size();
 	}
 
+	public void flush() {
+		transactions = new TreeSet<>();
+		hash = null; prevHash = null;
+	}
+
+	public void removeIntersection(Block b) {
+		this.transactions.removeAll(b.transactions);
+	}
 }

@@ -17,7 +17,7 @@ public class User {
 	private BlockChain blockChain;
 	private Block currBlock;
 
-	private static int sequence;
+	private static int sequence = -1;
 
 	/**
 	 * Constructs a new user with the given pair of keys.
@@ -47,7 +47,6 @@ public class User {
 		Transaction transaction = new Transaction(myKeyPair.getPublic(), receiverPubKey, val);
 		// sign transaction
 		transaction.setSignature(Utility.generateSignature(myKeyPair.getPrivate(), transaction.toString()));
-		// Encapsulate transaction in a notification.
 		return transaction;
 	}
 
@@ -55,39 +54,51 @@ public class User {
 	 * Notifies a random set of my peers, who in turn notify their peers until
 	 * the TTL of the notification runs out.
 	 * 
-	 * @param notification
+	 * @param ntfc
 	 *            the transaction encapsulated with the signature of the
 	 *            original sender and the TTL
 	 * @throws Exception
 	 */
-	public void notify(Notification notification) throws Exception {
+	public void notify(Notification ntfc) throws Exception {
 		// Add the transaction to my block.
-		if (notification instanceof Transaction) {
-			Transaction transaction = (Transaction) notification;
-			boolean isValid = Utility.verfiySignature(transaction.senderPubKey(), transaction.toString(),
-					transaction.signature());
-			if (!isValid)
+		if (ntfc instanceof Transaction) {
+			Transaction trans = (Transaction) ntfc;
+			if(!currBlock.add(trans))
 				return;
-
-			currBlock.add(transaction);
+			System.out.printf("\nUser %d added transaction %s to his block\n", userId, trans.toString());
+			tryMining();
 
 		} else {
-			boolean added = blockChain.addBlock((Block) notification);
+			boolean added = blockChain.addBlock((Block) ntfc);
 			if (!added) // not a valid block
 				return;
+			currBlock.removeIntersection((Block) ntfc);
 		}
-		printAnnouncement(notification);
 
-		// Drop the notfication if it has reached its hop limit.
-		if (notification.TTL() == 0)
-			return;
+		printAnnouncement(ntfc);
 
+		notifyPeers(ntfc);
+
+	}
+	public void tryMining() throws Exception {
+		// Announce block if it reached maximum size and was mined correctly.
+		if (currBlock.size() == Utility.BLOCK_SIZE) {
+			currBlock.mineBlock(blockChain.tail().hash());
+			System.out.printf("\nUser %d mined block %s\n", userId, currBlock.toString());
+			Block b = (Block) currBlock.clone();
+			blockChain.addBlock(b);
+			b = (Block) currBlock.clone();
+			currBlock.flush();
+			notify(b);
+		}
+	}
+	public void notifyPeers(Notification notification) throws Exception {
 		// Decrement the time to live (TTL) of the notification.
-		notification.setTTL(notification.TTL() - 1);
-
+		notification.decrementTTL();
+		if(notification.TTL() == 0)
+			return;
 		// Prepare a clone of the notification to pass on.
 		Notification passed = (Notification) notification.clone();
-
 		// Choose a random peer to deterministically notify.
 		int seed = (new Random()).nextInt(peers.size());
 		peers.get(seed).notify(passed);
@@ -101,39 +112,28 @@ public class User {
 				passed = (Notification) notification.clone();
 				peer.notify(passed);
 			}
-		}
 
-		// announce block if it reached maximum size and is mined correctly
-		if (currBlock.size() == Utility.BLOCK_SIZE) {
-			currBlock.mineBlock(blockChain.tail().hash());
-			String target = new String(new char[Utility.DIFFICULITY]).replaceAll("\0", "0");
-			if (currBlock.hash().substring(0, Utility.DIFFICULITY).equals(target))
-				notify(currBlock);
 		}
 	}
-
 	public void notifiyAll(Notification notification) throws CloneNotSupportedException, Exception {
 		notification.setTTL(0); // set ttl to 0 to prevent back propagation of
-								// this notification
+		// this notification
 		for (User peer : peers)
 			peer.notify((Notification) notification.clone());
 	}
 
 	private void printAnnouncement(Notification notification) {
 		if (notification instanceof Transaction) {
-			System.out.print("User " + userId + " with pubKey = " + myKeyPair.getPublic().hashCode()
-					+ " added new transaction : ");
+			System.out.print("\nUser " + userId + " with pubKey = " + myKeyPair.getPublic().hashCode()
+					+ " added new transaction: ");
 			System.out.println((Transaction) notification);
-			return;
 		}
 
-		if (notification instanceof Block) {
-			System.out.print("User " + userId + " with pubKey = " + myKeyPair.getPublic().hashCode()
+		else{
+			System.out.print("\nUser " + userId + " with pubKey = " + myKeyPair.getPublic().hashCode()
 					+ " added new block : ");
 			System.out.println((Block) notification);
-			return;
 		}
-
 	}
 
 	/**
@@ -151,7 +151,7 @@ public class User {
 	 */
 	public void printBlockchain() {
 		System.out
-				.print("User " + userId + " with pubKey = " + myKeyPair.getPublic().hashCode() + " has blockchain : ");
+		.print("User " + userId + " with pubKey = " + myKeyPair.getPublic().hashCode() + " has blockchain : ");
 		System.out.println(blockChain);
 	}
 

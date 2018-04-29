@@ -19,7 +19,7 @@ public class Transaction extends Notification implements Serializable, Comparabl
 		this.senderPubKey = senderPubKey;
 		this.receiverPubKey = receiverPubKey;
 		this.val = val;
-		this.val = ++sequence;
+		this.orderNum = sequence++;
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public class Transaction extends Notification implements Serializable, Comparabl
 
 	@Override
 	public String toString() {
-		return "Transaction [transId=" + transId + ", senderPubKey=" + senderPubKey.hashCode() + ", receiverPubKey="
+		return "[transId=" + transId + ", senderPubKey=" + senderPubKey.hashCode() + ", receiverPubKey="
 				+ receiverPubKey.hashCode() + ", val=" + val + "]";
 	}
 

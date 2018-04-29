@@ -4,20 +4,33 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Random;
 
+import models.Block;
+import models.Transaction;
 import utilities.Utility;
 
 public class Network {
 
 	private ArrayList<User> users = new ArrayList<>();
 
-	// coin base is not part of the network it is responsible from initiating
-	// the first transaction
+	/* Coin base is not part of the network it is responsible for initiating
+	the first transaction. */
 	private User coinbase;
 
 	public Network() throws NoSuchAlgorithmException {
+		// A dummy unregistered user.
 		coinbase = new User(Utility.generateKeyPair());
 	}
-
+	public void announceGenesis() throws Exception {
+		/* Create a genesis block and notifiy all users about it */
+		Block genesisBlock = new Block();
+		for (int i = 0; i < Utility.BLOCK_SIZE; i++) {
+			// A dummy transaction from the coinbase user to itself.
+			Transaction genesisTransaction = coinbase.createTransaction(0, coinbase.pubKey());
+			genesisBlock.add(genesisTransaction);
+		}
+		genesisBlock.mineBlock(null); // no prevHash
+		coinbase.notifiyAll(genesisBlock);
+	}
 	/**
 	 * Registers a new user into the network and connects it with at least one
 	 * other peer.
@@ -25,7 +38,7 @@ public class Network {
 	public void registerUser() throws NoSuchAlgorithmException {
 		// Create a new user with a given key pair.
 		User newUser = new User(Utility.generateKeyPair());
-		// add a connection from coinbase to allow the first transaction to reach all users in network
+		// Add a connection from coinbase to allow the first transaction to reach all users in network
 		coinbase.addPeer(newUser);
 
 		// If it's the first user in the network, add it right away.

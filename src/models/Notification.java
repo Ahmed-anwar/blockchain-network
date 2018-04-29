@@ -1,25 +1,30 @@
 package models;
 
+import utilities.Utility;
+
 public abstract class Notification {
-	private static final int initTTL = 6;
 	protected int TTL;
 
+
 	public Notification() {
-		this.TTL = initTTL;
+		this.TTL = Utility.INIT_TTL;
 	}
 
-	public Notification(int initTTL) {
-		this.TTL = initTTL;
+	public void setTTL(int tTL) {
+		TTL = tTL;
 	}
 
 	public int TTL() {
 		return TTL;
 	}
 
-	public void setTTL(int TTL) {
-		this.TTL = TTL;
+	public void decrementTTL() {
+		this.TTL--;
 	}
 
 	@Override
 	public abstract Object clone() throws CloneNotSupportedException;
+	
+	@Override
+	public abstract String toString();
 }

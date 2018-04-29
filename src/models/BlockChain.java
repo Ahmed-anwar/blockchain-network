@@ -1,12 +1,12 @@
 package models;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-
+import java.util.Map.Entry;
 import utilities.Utility;
 
 public class BlockChain {
 	Block tail; // longest chain tail
-
 	final HashMap<String, Block> cache = new HashMap<String, Block>();
 	final HashMap<String, Integer> chainLen = new HashMap<String, Integer>();
 
@@ -18,32 +18,44 @@ public class BlockChain {
 			return false;
 
 		cache.put(b.hash(), b);
+
 		if (tail == null) {
 			tail = b;
 			chainLen.put(b.hash(), 1);
 		} else {
 			int prevLen = chainLen.get(b.prevHash());
-			chainLen.put(b.hash(), prevLen++);
+			int newLen = prevLen + 1;
+			chainLen.put(b.hash(), newLen);
 			int currLen = chainLen.get(tail.hash());
-			tail = (currLen >= prevLen) ? tail : b;
+			if(newLen > currLen) {
+				tail = b;
+				removeShortChains();
+			}
 		}
 
 		return true;
 	}
-
+	public void removeShortChains() {
+		ArrayList<Entry<String, Integer>> entries  = new ArrayList<>(chainLen.entrySet());
+		for (int i = 0; i < entries.size(); i++) {
+			int bLen = entries.get(i).getValue();
+			String bHash = entries.get(i).getKey();
+			int currLen = chainLen.get(tail.hash());
+			if(currLen - bLen > Utility.BLOCK_LIFE) {
+				chainLen.remove(bHash);
+				cache.remove(bHash);
+			}
+		}
+	}
 	public boolean validateBlock(Block b) throws Exception {
-		if (b.prevHash() != null && !cache.containsKey(b.prevHash())) // prevHash
-																		// not
-																		// present
+		if (b.prevHash() != null && !cache.containsKey(b.prevHash())) // prevHash not present
 			return false;
 
-		String target = new String(new char[Utility.DIFFICULITY]).replaceAll("\0", "0");
-		if (!b.hash().substring(0, Utility.DIFFICULITY).equals(target)) // invalid
-																		// mining
+		if (!Utility.isTarget(b.hash())) // invalid  mining
 			return false;
 
 		for (Transaction transaction : b.transactions())
-			// validate transcations
+			// validate transactions
 			if (!Utility.verfiySignature(transaction.senderPubKey(), transaction.toString(), transaction.signature()))
 				return false;
 
@@ -56,7 +68,7 @@ public class BlockChain {
 
 	@Override
 	public String toString() {
-		return "BlockChain [tail=" + tail + ", \n numBlocks = " + cache.size() + ", cache=" + cache + "]";
+		return "tail= " + tail + "\n chain length = " + chainLen.get(tail.hash()) + "\n cache= " + cache.values().toString();
 	}
 
 }

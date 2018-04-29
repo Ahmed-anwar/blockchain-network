@@ -13,7 +13,9 @@ import javax.xml.bind.DatatypeConverter;
  */
 public class Utility {
 	public final static int DIFFICULITY = 2;
-	public final static int BLOCK_SIZE = 1;
+	public final static int BLOCK_SIZE = 3;
+	public final static int INIT_TTL = 6;
+	public final static int BLOCK_LIFE = 3;
 
 	/**
 	 * Generates an instance of a private and public key pair using the DSA
@@ -47,21 +49,17 @@ public class Utility {
 	 *         transaction
 	 */
 	public static String generateSignature(PrivateKey privateKey, String plainText) throws NoSuchAlgorithmException,
-			InvalidKeyException, SignatureException, IOException {
+	InvalidKeyException, SignatureException, IOException {
 		Signature sign = Signature.getInstance("DSA");
-		// Configure the private key for the signature
 		sign.initSign(privateKey);
-		// Sign the marshalled form of the transaction
 		sign.update(plainText.getBytes());
-		return new String(Base64.getEncoder().encode(sign.sign()));
+		return Base64.getEncoder().encodeToString(sign.sign());
 	}
 
 	public static boolean verfiySignature(PublicKey pubKey, String plainText, String signature) throws Exception {
 		Signature sign = Signature.getInstance("DSA");
 		sign.initVerify(pubKey);
-
 		sign.update(plainText.getBytes());
-
 		return sign.verify(Base64.getDecoder().decode(signature));
 	}
 
@@ -71,14 +69,11 @@ public class Utility {
 		byte byteData[] = md.digest();
 		return DatatypeConverter.printHexBinary(byteData);
 	}
-
-	/**
-	 * Test the key pair generation and the signature methods.
-	 */
-	// public static void main(String[] args) throws NoSuchAlgorithmException,
-	// InvalidKeyException, IOException, SignatureException {
-	// Transaction transaction = new Transaction("212", "asd");
-	// KeyPair keyPair = generateKeyPair();
-	// System.out.println(generateSignature(keyPair.getPrivate(), transaction));
-	// }
+	
+	public static String target() {
+		return new String(new char[DIFFICULITY]).replace('\0', '0');
+	}
+	public static boolean isTarget(String hash) {
+		return hash.substring(0, Utility.DIFFICULITY).equals(target());
+	}
 }
