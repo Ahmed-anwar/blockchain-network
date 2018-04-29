@@ -2,11 +2,11 @@ package models;
 
 import utilities.Utility;
 
-public abstract class Notification {
+public abstract class Message {
 	protected int TTL;
 
 
-	public Notification() {
+	public Message() {
 		this.TTL = Utility.INIT_TTL;
 	}
 

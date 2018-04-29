@@ -12,14 +12,20 @@ public class Network {
 
 	private ArrayList<User> users = new ArrayList<>();
 
-	/* Coin base is not part of the network it is responsible for initiating
-	the first transaction. */
+	/**
+	 * Coinbase user is not part of the network, it is responsible only for mining
+	the first block.
+	 */
 	private User coinbase;
 
 	public Network() throws NoSuchAlgorithmException {
 		// A dummy unregistered user.
 		coinbase = new User(Utility.generateKeyPair());
 	}
+	
+	/**
+	 * Announces a genesis block to all users of the network as a starting point.
+	 */
 	public void announceGenesis() throws Exception {
 		/* Create a genesis block and notifiy all users about it */
 		Block genesisBlock = new Block();
