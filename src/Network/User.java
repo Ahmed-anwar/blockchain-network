@@ -11,7 +11,7 @@ import models.Transaction;
 import utilities.Utility;
 
 public class User {
-	private int userId;
+	public int userId;
 	private KeyPair myKeyPair;
 	private ArrayList<User> peers;
 	private BlockChain blockChain;
@@ -66,7 +66,9 @@ public class User {
 			if(!currBlock.add(trans))
 				return;
 			printAnnouncement(ntfc);
-			tryMining();
+			Block b = tryMining();
+			if(b != null)
+				notify(b);
 
 		} else {
 			boolean added = blockChain.addBlock((Block) ntfc);
@@ -79,17 +81,18 @@ public class User {
 		notifyPeers(ntfc);
 
 	}
-	public void tryMining() throws Exception {
+	public Block tryMining() throws Exception {
 		// Announce block if it reached maximum size and was mined correctly.
 		if (currBlock.size() == Utility.BLOCK_SIZE) {
-			currBlock.mineBlock(blockChain.tail().hash());
+			currBlock.mineBlock(blockChain.head().hash());
 			System.out.printf("\nUser %d mined block %s with trans\n %s\n", userId, currBlock.toString(), currBlock.transactions().toString());
 			Block b = (Block) currBlock.clone();
 			blockChain.addBlock(b);
 			b = (Block) currBlock.clone();
 			currBlock.flush();
-			notify(b);
+			return b;
 		}
+		return null;
 	}
 	public void notifyPeers(Notification notification) throws Exception {
 		// Decrement the time to live (TTL) of the notification.

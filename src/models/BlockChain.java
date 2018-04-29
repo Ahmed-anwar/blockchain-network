@@ -7,10 +7,10 @@ import java.util.Map.Entry;
 import utilities.Utility;
 
 public class BlockChain {
-	Block head; // longest chain tail
-	final HashMap<String, Block> cache = new HashMap<String, Block>();
-	final HashMap<String, Block> memory = new HashMap<String, Block>(); //full history
-	final HashMap<String, Integer> chainLen = new HashMap<String, Integer>();
+	private Block head; // longest chain tail
+	private final HashMap<String, Block> cache = new HashMap<String, Block>();
+	private final HashMap<String, Block> memory = new HashMap<String, Block>(); //full history
+	private final HashMap<String, Integer> chainLen = new HashMap<String, Integer>();
 
 	public boolean addBlock(Block b) throws Exception {
 		if (cache.containsKey(b.hash()) || !validateBlock(b)) // received block before
@@ -64,7 +64,7 @@ public class BlockChain {
 		return true;
 	}
 
-	public Block tail() {
+	public Block head() {
 		return head;
 	}
 

@@ -20,6 +20,8 @@ public class Block extends Notification {
 	public void mineBlock(String prevHash) throws NoSuchAlgorithmException {
 		this.prevHash = prevHash;
 		String merkleRoot = getMerkleRoot();
+		long timestamp = System.currentTimeMillis();
+		merkleRoot += "" + timestamp;
 		hash = calcHash(merkleRoot);
 		int nonce = 0;
 		while (!Utility.isTarget(hash)) {

@@ -76,36 +76,4 @@ public class Network {
 		return coinbase;
 	}
 
-	/**
-	 * Prints the existing user IDs along with the peers and current block of
-	 * each.
-	 */
-	// public void print() {
-	// int counter = 1;
-	// for (User u : users){
-	// System.out.println("=========================================================================");
-	// System.out.println("=============================== User #" + counter++ +
-	// " ===============================");
-	// System.out.println("=========================================================================");
-	// System.out.println("User ID: " + u);
-	// System.out.println("Peers: " + u.peers.toString());
-	// System.out.println("Block: " + u.getBlock());
-	// System.out.println(" ");
-	// }
-	// }
-	// /**
-	// * Prints the existing user IDs along with the current block of each.
-	// */
-	// public void printUsersBlocks(){
-	// for (User user: users)
-	// user.printMyBlocks();
-	// }
-	// /**
-	// * Prints the existing user IDs along with the peers of each.
-	// */
-	// public void printUsersPeers() {
-	// for (User user: users)
-	// user.printMyPeers();
-	// }
-
 }
