@@ -94,7 +94,9 @@ public class Block extends Notification {
 		b.prevHash = this.prevHash;
 		b.TTL = this.TTL;
 		b.transactions = new TreeSet<Transaction>();
-		this.transactions.forEach(t -> { b.transactions.add(t);});
+		this.transactions.forEach(t -> {
+			b.transactions.add(t);
+		});
 		return b;
 	}
 

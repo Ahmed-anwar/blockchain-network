@@ -4,8 +4,6 @@ import java.io.Serializable;
 import java.security.PublicKey;
 import java.util.UUID;
 
-import utilities.Utility;
-
 @SuppressWarnings("serial")
 public class Transaction extends Notification implements Serializable, Comparable<Transaction> {
 	private String transId, signature;
@@ -61,8 +59,8 @@ public class Transaction extends Notification implements Serializable, Comparabl
 
 	@Override
 	public String toString() {
-		return "Transaction [transId=" + transId + ", senderPubKey=" + senderPubKey.hashCode()
-				+ ", receiverPubKey=" + receiverPubKey.hashCode() + ", val=" + val + "]";
+		return "Transaction [transId=" + transId + ", senderPubKey=" + senderPubKey.hashCode() + ", receiverPubKey="
+				+ receiverPubKey.hashCode() + ", val=" + val + "]";
 	}
 
 	@Override

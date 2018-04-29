@@ -14,6 +14,7 @@ import javax.xml.bind.DatatypeConverter;
 public class Utility {
 	public final static int DIFFICULITY = 2;
 	public final static int BLOCK_SIZE = 1;
+
 	/**
 	 * Generates an instance of a private and public key pair using the DSA
 	 * algorithm.

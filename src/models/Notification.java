@@ -1,8 +1,6 @@
 package models;
 
-import models.Transaction;
-
-public abstract class  Notification{
+public abstract class Notification {
 	private static final int initTTL = 6;
 	protected int TTL;
 
@@ -10,7 +8,7 @@ public abstract class  Notification{
 		this.TTL = initTTL;
 	}
 
-	public Notification( int initTTL) {
+	public Notification(int initTTL) {
 		this.TTL = initTTL;
 	}
 
@@ -21,7 +19,6 @@ public abstract class  Notification{
 	public void setTTL(int TTL) {
 		this.TTL = TTL;
 	}
-
 
 	@Override
 	public abstract Object clone() throws CloneNotSupportedException;
