@@ -5,7 +5,7 @@ import java.security.PublicKey;
 import java.util.UUID;
 
 @SuppressWarnings("serial")
-public class Transaction extends Notification implements Serializable, Comparable<Transaction> {
+public class Transaction extends Message implements Serializable, Comparable<Transaction> {
 	private String transId, signature;
 	private PublicKey senderPubKey;
 	private PublicKey receiverPubKey;

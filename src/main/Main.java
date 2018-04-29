@@ -2,9 +2,9 @@ package main;
 
 import models.Block;
 import models.Transaction;
+import network.Network;
+import network.User;
 import utilities.Utility;
-import Network.Network;
-import Network.User;
 
 public class Main {
 
@@ -38,30 +38,32 @@ public class Main {
 		User user0 = network.users().get(0);
 		User user1 = network.users().get(1);
 		User user2 = network.users().get(2);
+		
 		for (int i = 0; i < Utility.BLOCK_SIZE; i++) {
 			Transaction t = user0.createTransaction(1, user1.pubKey());
 			user0.currBlock().add(t);
 			user1.currBlock().add(t);
 		}
+		
 		Block b1 = user0.tryMining();
-		System.out.println("User 0 mined the block " + b1.toString());
 		Block b1Prime = user1.tryMining();
-		System.out.println("User 1 mined the block " + b1Prime.toString());
+		
+		//Set TTL to 1 to reach only user 2.
+		b1.setTTL(1);	b1Prime.setTTL(1);
 		user2.notify(b1);
-		System.out.println("User 2 received the block " + b1.toString());
 		user2.notify(b1Prime);
-		System.out.println("User 2 received the block " + b1Prime.toString());
 
 		for (int i = 0; i < Utility.BLOCK_SIZE; i++) {
 			Transaction t = user0.createTransaction(1, user1.pubKey());
 			user0.currBlock().add(t);
 		}
+		
 		Block b2 = user0.tryMining();
-		System.out.println("User 0 mined the block " + b2.toString());
+		
+		b2.setTTL(1);
 		user2.notify(b2);
-		System.out.println("User 2 received the block " + b2.toString());
 
-		System.out.println("========User 2 blockchain======");
+		System.out.println("\n========User 2 blockchain======\n");
 		user2.printBlockchain();
 
 	}

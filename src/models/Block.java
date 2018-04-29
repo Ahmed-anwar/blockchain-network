@@ -7,7 +7,7 @@ import java.util.TreeSet;
 import utilities.Utility;
 import models.Transaction;
 
-public class Block extends Notification {
+public class Block extends Message {
 	private String hash, prevHash;
 	private TreeSet<Transaction> transactions;
 
@@ -16,42 +16,47 @@ public class Block extends Notification {
 		transactions = new TreeSet<Transaction>();
 	}
 
-	// Increases nonce value until hash target is reached.
+	
+	/**
+	 * Hashes the current block using its hashed Merkle tree, a timestamp and 
+	 * a nonce that achieves the proof of work.
+	 * @param prevHash the hash of the previous block we build upon
+	 */
 	public void mineBlock(String prevHash) throws NoSuchAlgorithmException {
 		this.prevHash = prevHash;
-		String merkleRoot = getMerkleRoot();
+		String merkleRoot = merkleRoot();
 		long timestamp = System.currentTimeMillis();
 		merkleRoot += "" + timestamp;
-		hash = calcHash(merkleRoot);
+		hash = Utility.hash(merkleRoot);
+		
+		//Try nonce values sequentially until you hit the target.
 		int nonce = 0;
 		while (!Utility.isTarget(hash)) {
 			nonce++;
-			hash = calcHash(merkleRoot + nonce);
+			hash = Utility.hash(merkleRoot + nonce);
 		}
 	}
 
-	private String calcHash(String s) throws NoSuchAlgorithmException {
-		return Utility.hash(s);
-	}
-
-	// Tacks in array of transactions and returns a merkle root.
-	private String getMerkleRoot() throws NoSuchAlgorithmException {
+	/**
+	 * Constructs the Merkle tree of the hashes of the block transactions.
+	 * @return the hashed Merkle root
+	 */
+	private String merkleRoot() throws NoSuchAlgorithmException {
 		int count = transactions.size();
-		ArrayList<String> previousTreeLayer = new ArrayList<String>();
+		ArrayList<String> prevTreeLayer = new ArrayList<String>();
 		for (Transaction transaction : transactions) {
-			previousTreeLayer.add(transaction.transId());
+			prevTreeLayer.add(transaction.transId());
 		}
-		ArrayList<String> treeLayer = previousTreeLayer;
+		ArrayList<String> treeLayer = prevTreeLayer;
 		while (count > 1) {
 			treeLayer = new ArrayList<String>();
-			for (int i = 1; i < previousTreeLayer.size(); i++) {
-				treeLayer.add(Utility.hash(previousTreeLayer.get(i - 1) + previousTreeLayer.get(i)));
+			for (int i = 1; i < prevTreeLayer.size(); i++) {
+				treeLayer.add(Utility.hash(prevTreeLayer.get(i - 1) + prevTreeLayer.get(i)));
 			}
 			count = treeLayer.size();
-			previousTreeLayer = treeLayer;
+			prevTreeLayer = treeLayer;
 		}
-		String merkleRoot = (treeLayer.size() == 1) ? treeLayer.get(0) : "";
-		return merkleRoot;
+		return treeLayer.get(0);
 	}
 
 	/**
@@ -59,7 +64,7 @@ public class Block extends Notification {
 	 *
 	 * @param transaction
 	 *            the transaction to add to the block
-	 * @throws Exception
+	 * @return true if the signature of the transaction is verified
 	 */
 	public boolean add(Transaction transaction) throws Exception {
 		if (	Utility.verfiySignature(transaction.senderPubKey(), transaction.plainText(), transaction.signature())) {

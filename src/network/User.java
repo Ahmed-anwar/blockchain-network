@@ -1,4 +1,4 @@
-package Network;
+package network;
 
 import java.security.*;
 import java.util.ArrayList;
@@ -6,7 +6,7 @@ import java.util.Random;
 
 import models.Block;
 import models.BlockChain;
-import models.Notification;
+import models.Message;
 import models.Transaction;
 import utilities.Utility;
 
@@ -33,13 +33,12 @@ public class User {
 		this.userId = sequence++;
 	}
 
+
 	/**
-	 * Creates a new transaction from the given message and notifies some of my
-	 * peers.
-	 *
-	 * @param message
-	 *            the actual content of the transaction
-	 * @throws Exception
+	 * Creates and signs a new transaction from the current user to some recipient.
+	 * @param val the amount of bitcoins to transfer
+	 * @param receiverPubKey the public key of the receiver
+	 * @return the constructed transaction
 	 */
 	public Transaction createTransaction(double val, PublicKey receiverPubKey) throws Exception {
 
@@ -51,38 +50,41 @@ public class User {
 	}
 
 	/**
-	 * Notifies a random set of my peers, who in turn notify their peers until
-	 * the TTL of the notification runs out.
-	 *
-	 * @param ntfc
-	 *            the transaction encapsulated with the signature of the
-	 *            original sender and the TTL
-	 * @throws Exception
+	 * 
+	 * Processes the received message & notifies a random set of my peers, who in turn notify their peers until
+	 * the TTL of the message runs out.
+	 * @param msg the message to notify: either a block or a transaction
 	 */
-	public void notify(Notification ntfc) throws Exception {
-		// Add the transaction to my block.
-		if (ntfc instanceof Transaction) {
-			Transaction trans = (Transaction) ntfc;
-			if(!currBlock.add(trans))
+	public void notify(Message msg) throws Exception {
+		if (msg instanceof Transaction) {	//transaction
+			Transaction trans = (Transaction) msg;
+			if(!currBlock.add(trans)) //invalid signature
 				return;
-			printAnnouncement(ntfc);
-			Block b = tryMining();
-			if(b != null)
+
+			printMessage(msg);
+
+			// Check if my current block is ready to mine.
+			Block b = tryMining(); 
+			if(b != null)	//mining was successful
 				notify(b);
 
-		} else {
-			boolean added = blockChain.addBlock((Block) ntfc);
-			if (!added) // not a valid block
+		} else { // block
+			if (!blockChain.addBlock((Block) msg)) // an invalid block
 				return;
-			printAnnouncement(ntfc);
-			currBlock.removeIntersection((Block) ntfc);
+
+			printMessage(msg);
+			
+			// Remove intersection between received block and my current mining block if any.
+			currBlock.removeIntersection((Block) msg);
 		}
-
-		notifyPeers(ntfc);
-
+		notifyPeers(msg);
 	}
+	/**
+	 *  Mines the user's current block if it reached its capacity, and flushes it afterwards.
+	 * @return the mined block (null if failed)
+	 * @throws Exception
+	 */
 	public Block tryMining() throws Exception {
-		// Announce block if it reached maximum size and was mined correctly.
 		if (currBlock.size() == Utility.BLOCK_SIZE) {
 			currBlock.mineBlock(blockChain.head().hash());
 			System.out.printf("\nUser %d mined block %s with trans\n %s\n", userId, currBlock.toString(), currBlock.transactions().toString());
@@ -94,45 +96,63 @@ public class User {
 		}
 		return null;
 	}
-	public void notifyPeers(Notification notification) throws Exception {
-		// Decrement the time to live (TTL) of the notification.
-		notification.decrementTTL();
-		if(notification.TTL() == 0)
+	/**
+	 * Notifies a random percentage of my peers with a message.
+	 * Guarantees the notification of at least one of my peers.
+	 * @param msg the message to propagate
+	 */
+	public void notifyPeers(Message msg) throws Exception {
+		// Decrement the time to live (TTL) of the msg.
+		msg.decrementTTL();
+		
+		// Drop the message if its TTL reached zero.
+		if(msg.TTL() <= 0)
 			return;
-		// Prepare a clone of the notification to pass on.
-		Notification passed = (Notification) notification.clone();
+		
+		// Prepare a clone of the msg to pass on.
+		Message passed = (Message) msg.clone();
+		
 		// Choose a random peer to deterministically notify.
 		int seed = (new Random()).nextInt(peers.size());
 		peers.get(seed).notify(passed);
 
-		// Choose a random percentage (between 5% and 20%) of my peers to
-		// notify.
+		// Choose a random percentage (between 5% and 20%) of my peers to notify.
 		int percentageOfNotifiedPeers = new Random().nextInt(15) + 5;
 		for (User peer : peers) {
 			int send = new Random().nextInt(percentageOfNotifiedPeers);
 			if (send == 0) {
-				passed = (Notification) notification.clone();
+				passed = (Message) msg.clone();
 				peer.notify(passed);
 			}
 
 		}
 	}
-	public void notifiyAll(Notification notification) throws CloneNotSupportedException, Exception {
-		notification.setTTL(0); // set ttl to 0 to prevent back propagation of
-		// this notification
+	/**
+	 * Notifies all of my peers deterministically with a TTL of 1.
+	 * @param msg
+	 * @throws CloneNotSupportedException
+	 * @throws Exception
+	 */
+	public void notifiyAll(Message msg) throws CloneNotSupportedException, Exception {
+		msg.setTTL(1); // set ttl to 1 to prevent back propagation of
+		// this msg
 		for (User peer : peers)
-			peer.notify((Notification) notification.clone());
+			peer.notify((Message) msg.clone());
 	}
 
-	private void printAnnouncement(Notification notification) {
-		if (notification instanceof Transaction) {
+	/**
+	 * Prints a received message.
+	 * @param msg	the message the user received
+	 */
+	private void printMessage(Message msg) {
+		if (msg instanceof Transaction) {
 			System.out.print("\nUser " + userId + " added transaction: ");
-			System.out.println(((Transaction) notification).transId());
+			System.out.println(((Transaction) msg).transId());
 		}
 
 		else{
 			System.out.print("\nUser " + userId + " added block : ");
-			System.out.println((Block) notification);
+			System.out.println((Block) msg);
 		}
 	}
 
