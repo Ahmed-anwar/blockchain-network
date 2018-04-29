@@ -44,6 +44,10 @@ public class Main {
 		for (User user : network.users())
 			user.printBlockchain();
 
+		System.out.println();
+		System.out.println("==================== NEW TRANSACTION ANNOUNCED ========================");
+		System.out.println();
+		
 		/*
 		 * for this test, I setted the BLOCK_SIZE in utilities class to 1 to
 		 * check that a block is created at some users
@@ -53,9 +57,6 @@ public class Main {
 		Transaction t = user1.createTransaction(2000, user2.pubKey());
 		user1.notify(t);
 
-		System.out.println();
-		System.out.println("==================== NEW TRANSACTION ANNOUNCED ========================");
-		System.out.println();
 		for (User user : network.users())
 			// print blockchain of each user
 			user.printBlockchain();
